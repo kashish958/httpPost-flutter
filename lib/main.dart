@@ -1,3 +1,6 @@
+import 'dart:developer';
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'model.dart';
@@ -18,6 +21,8 @@ class MyappState extends State<Myapp>{
   TextEditingController nameController = TextEditingController();
   final TextEditingController jobController = TextEditingController();
   Model user;
+  List data;
+  var counter = 0; //to increment post request
 
   Future <Model> createuser(String name, String jobtitle ) async{
     String clear = ""; 
@@ -27,35 +32,33 @@ class MyappState extends State<Myapp>{
     body : {
       "name" : name ,
       "job" :jobtitle
-
     }
+    
     );
    if(response.statusCode ==201){
      this.nameController.text = clear;
      this.jobController.text = clear;
      return modelFromJson(response.body);
-
+    
    }
    else{
      return null;
    }
 
+   setState(() {
+     var conv = json.decode(response.body);
+     data = conv['results'];
+   });
   }
-
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
-
       home:Scaffold(
-
-
           body :Container(
-
             padding: EdgeInsets.all(32),
             child :
               Column(
-                children:  <Widget>[
+                children: [
 
                   TextField(
 
@@ -73,12 +76,42 @@ class MyappState extends State<Myapp>{
               SizedBox(
                 height: 30.0,
               )   ,
-              if(user== null) Container()
-else Text("The ${user.name} is created successfully at ${user.createdAt.toIso8601String()} with job id ${user.id}")
+              if(user== null)
+                Container()
+              else 
+                ListView.builder(
 
-                ],
+                itemCount: data == null ? 0 : data.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Container(
+                      child: Center(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Card(
+                          child: Container(
+                              child: Text(data[index]['name']),
 
-              )
+                              padding: const EdgeInsets.all(20.0)
+
+
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                  );
+                }
+                ),
+
+                // Container(
+                //   child: Text("The ${user.name} is created successfully at ${user.createdAt.toIso8601String()} with job id ${user.id}"),
+                  
+                // ),
+              
+              ],
+
+            )
 
 
 
@@ -93,13 +126,11 @@ else Text("The ${user.name} is created successfully at ${user.createdAt.toIso860
 
             final String name = nameController.text;
             final String jobtitle = jobController.text;
-         final Model m =  await createuser(name, jobtitle);
-
-         setState(() {
-           user = m;
-
-         });
-
+            final Model m =  await createuser(name, jobtitle);
+            counter++;
+            setState(() {
+              user = m;
+            });
           },
           child: Icon(Icons.add),
         ),
