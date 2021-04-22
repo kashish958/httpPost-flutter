@@ -15,21 +15,24 @@ class Myapp extends StatefulWidget{
 }
 class MyappState extends State<Myapp>{
 
-  final TextEditingController nameController = TextEditingController();
+  TextEditingController nameController = TextEditingController();
   final TextEditingController jobController = TextEditingController();
   Model user;
 
   Future <Model> createuser(String name, String jobtitle ) async{
+    String clear = ""; 
 
     final String url = "https://reqres.in/api/users";
-   final response =  await http.post(Uri.parse(url) ,
+    final response =  await http.post(Uri.parse(url) ,
     body : {
-"name" : name ,
+      "name" : name ,
       "job" :jobtitle
 
     }
     );
    if(response.statusCode ==201){
+     this.nameController.text = clear;
+     this.jobController.text = clear;
      return modelFromJson(response.body);
 
    }
